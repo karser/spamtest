@@ -1,0 +1,26 @@
+{
+    "name": "karser/spamtest",
+    "description": "test email deliverability",
+    "type": "project",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "karser",
+            "email": "dpoddubny@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "php": "^8.0",
+        "symfony/mailer": "^6.0",
+        "guzzlehttp/guzzle": "^6.5",
+        "symfony/console": "^6.0",
+        "webmozart/assert": "^1.11",
+        "twig/twig": "^3.0"
+    }
+}

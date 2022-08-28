@@ -1,0 +1,16 @@
+#!/usr/bin/env php
+<?php
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+// Create the Application
+$application = new Symfony\Component\Console\Application;
+
+$loader = new \Twig\Loader\FilesystemLoader(__DIR__.'/../templates');
+$twig = new \Twig\Environment($loader);
+
+$application->add(new \App\Command\SpamTestCommand());
+$application->add(new \App\Command\ReportCommand($twig));
+
+// Run it
+$application->run();

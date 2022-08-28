@@ -1,0 +1,23 @@
+{% for account in accounts %}
+    <div>
+    <h3>{{ account.note }} ({{ account.fromEmail }})</h3>
+    <table>
+        <tr>
+        <th>Date</th>
+        <th>SenderScore</th>
+        <th>InboxRate</th>
+        <th>SpamRate</th>
+        <th>BounceRate</th>
+        </tr>
+        {% for test in account.tests %}
+            <tr>
+                <td> <a href="https://shared-report.glockapps.com/tests/{{ test['TestId'] }}">{{ test.Date|date("Y-m-d") }}</a> </td>
+                <td>{{ test.SenderScore }}</td>
+                <td>{{ test.Stats.InboxRate }}</td>
+                <td>{{ test.Stats.SpamRate }}</td>
+                <td>{{ test.Stats.BounceRate }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+    </div>
+{% endfor %}
