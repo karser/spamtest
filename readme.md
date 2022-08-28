@@ -3,8 +3,10 @@
 - Test your Email Deliverability by schedule and receive email reports.
 - See if your emails are being delivered to Inbox or Spam folder at Gmail, Outlook and etc.
 
-## Prepare accounts.json file
-Define your SMTP accounts here in the following format
+## Prepare files
+
+#### accounts.json
+Define your SMTP accounts here in the following format:
 ```
 [
   {
@@ -15,29 +17,16 @@ Define your SMTP accounts here in the following format
   }
 ]
 ```
+The password must be urlencoded (%2B instead of +, %20 instead of space and etc).
+
+#### body.html
+
+Put your email contents into this file.
 
 ## Getting started with docker-compose
 
-### Verify accounts without creating a glockapps test
-First you want to make sure that your accounts config is correct and emailable.
-```
-version: "3.2"
-
-services:
-  spamtest:
-    image: karser/spamtest:latest
-    environment:
-      ACCOUNTS_PATH: '/accounts.json'
-      SUBJECT: 'Your test email subject'
-      BODY_PATH: '/body.html'
-      EMAIL: 'your@email.com,your-second@email.com'
-    volumes:
-      - ./body.html:/body.html
-      - ./accounts.json:/accounts.json
-    command: ['bin/console', 'app:spamtest', '--verify']
-```
-
-### Run a glockapps tests with email report by a cron schedule once a week
+This setup runs a glockapps tests with email report by a cron schedule once a week.
+Create a file called docker-compose.yml with the content below:
 ```
 version: "3.2"
 
@@ -58,21 +47,44 @@ services:
         0 0 * * 1 /var/app/bin/console app:spamtest >> /var/log/cron.log 2>&1
         0 8 * * 1 /var/app/bin/console app:report >> /var/log/cron.log 2>&1
     volumes:
-      - ./body.html:/body.html
-      - ./accounts.json:/accounts.json
+      - ./body.html:/body.html:ro
+      - ./accounts.json:/accounts.json:ro
     command: ['/usr/local/bin/cron-entrypoint']
 ```
 
+#### Run this and get into the container:
+```
+docker-compose up -d
+docker exec -it spamtest_spamtest_1 sh
+```
+
+#### Verify accounts without creating a glockapps test
+First you want to make sure that your accounts config is correct and emailable.
+```
+bin/console app:report --verify
+```
+If the previous command was executed successfully check your mailbox that you specified in EMAIL variable.
+
+#### Then let's run a spam test:
+```
+bin/console app:spamtest
+```
+
+#### Send email report
+After a while run the report script
+```
+bin/console app:report
+```
 
 ## Getting started without docker
 
-### Clone the repo and install dependencies
+#### Clone the repo and install dependencies
 ```
 git clone
 composer install
 ```
 
-### Verify accounts without creating a glockapps test
+#### Verify accounts without creating a glockapps test
 First you want to make sure that your accounts config is correct and emailable.
 ```
 bin/console app:spamtest \
@@ -82,7 +94,7 @@ bin/console app:spamtest \
   --body-path=/path/to/body.html
 ```
 
-### Run a glockapps test
+#### Run a glockapps test
 ```
 bin/console app:spamtest \
   --glockapps-key=XXXXXXXXX
@@ -91,7 +103,7 @@ bin/console app:spamtest \
   --body-path=/path/to/body.html
 ```
 
-### Send email report
+#### Send email report
 ```
 bin/console app:spamtest \
   --glockapps-key=XXXXXXXXX
