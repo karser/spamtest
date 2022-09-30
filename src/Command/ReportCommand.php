@@ -31,7 +31,7 @@ class ReportCommand extends Command
         $this->addOption('report-from-email', null,InputOption::VALUE_REQUIRED);
         $this->addOption('report-from-name', null,InputOption::VALUE_REQUIRED);
         $this->addOption('report-period', null,InputOption::VALUE_REQUIRED, '', '-365 days');
-        $this->addOption('email', null,InputOption::VALUE_REQUIRED);
+        $this->addOption('recipient-email', null,InputOption::VALUE_REQUIRED);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -40,9 +40,9 @@ class ReportCommand extends Command
         Assert::string($accountsPath, '--accounts-path or ACCOUNTS_PATH is required');
         Assert::fileExists($accountsPath);
         $accounts = json_decode(file_get_contents($accountsPath), true, 512, JSON_THROW_ON_ERROR);
-        $email = $input->getOption('email') ?? getenv('EMAIL');
-        Assert::string($email, '--email or EMAIL is required');
-        $email = explode(',', $email);
+        $recipientEmail = $input->getOption('recipient-email') ?? getenv('RECIPIENT_EMAIL');
+        Assert::string($recipientEmail, '--recipient-email or RECIPIENT_EMAIL is required');
+        $recipientEmail = explode(',', $recipientEmail);
 
         $reportDsn = $input->getOption('report-dsn') ?? getenv('REPORT_DSN');
         Assert::string($reportDsn, '--report-dsn or REPORT_DSN is required');
@@ -67,7 +67,7 @@ class ReportCommand extends Command
         }
         $bodyHtml = $this->twig->render('email-report.html.twig', ['accounts' => $accounts]);
         $ess = new EmailSender('Spamtest Report', $bodyHtml);
-        $ess->sendEmails($reportDsn, $email, $reportFromEmail, $reportFromName);
+        $ess->sendEmails($reportDsn, $recipientEmail, $reportFromEmail, $reportFromName);
 
         return self::SUCCESS;
 

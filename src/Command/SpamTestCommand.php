@@ -22,7 +22,7 @@ class SpamTestCommand extends Command
         $this->addOption('body-path', null,InputOption::VALUE_REQUIRED);
         $this->addOption('test-period', null,InputOption::VALUE_REQUIRED, '', '-7 days');
         $this->addOption('verify', '', InputOption::VALUE_NONE, 'Verify account without creating a Glockapps test');
-        $this->addOption('email', null,InputOption::VALUE_REQUIRED);
+        $this->addOption('recipient-email', null,InputOption::VALUE_REQUIRED);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -40,16 +40,16 @@ class SpamTestCommand extends Command
         $testPeriod = $input->getOption('test-period') ?? getenv('TEST_PERIOD');
         Assert::string($testPeriod, '--test-period or TEST_PERIOD is required');
         $verify = $input->getOption('verify') === true;
-        $email = $input->getOption('email') ?? getenv('EMAIL');
-        Assert::string($email, '--email or EMAIL is required');
-        $email = explode(',', $email);
+        $recipientEmail = $input->getOption('recipient-email') ?? getenv('RECIPIENT_EMAIL');
+        Assert::string($recipientEmail, '--recipient-email or RECIPIENT_EMAIL is required');
+        $recipientEmail = explode(',', $recipientEmail);
 
         $es = new EmailSender($subject, $bodyHtml);
 
         if ($verify) {
             foreach ($accounts as $account) {
                 $output->write($account['dsn'].'...');
-                $es->sendEmails($account['dsn'], $email, $account['fromEmail'], $account['fromName'], '', $account['note']);
+                $es->sendEmails($account['dsn'], $recipientEmail, $account['fromEmail'], $account['fromName'], '', $account['note']);
                 $output->writeln(' OK');
             }
             return self::SUCCESS;

@@ -61,7 +61,7 @@ docker exec -it spamtest_spamtest_1 sh
 #### Verify accounts without creating a glockapps test
 First you want to make sure that your accounts config is correct and emailable.
 ```
-bin/console app:report --verify
+bin/console app:spamtest --verify
 ```
 If the previous command was executed successfully check your mailbox that you specified in EMAIL variable.
 
@@ -88,7 +88,7 @@ composer install
 First you want to make sure that your accounts config is correct and emailable.
 ```
 bin/console app:spamtest \
-  --verify --email=your@email.com \
+  --verify --recipient-email=your@email.com \
   --accounts-path=/path/to/accounts.json \
   --subject='Your test email subject' \
   --body-path=/path/to/body.html
