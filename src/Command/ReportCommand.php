@@ -26,8 +26,8 @@ class ReportCommand extends Command
     public function configure(): void
     {
         $this->addOption('glockapps-key', null,InputOption::VALUE_REQUIRED);
-        $this->addOption('accounts-path', null,InputOption::VALUE_REQUIRED);
-        $this->addOption('report-dsn', null,InputOption::VALUE_REQUIRED);
+        $this->addOption('accounts-path', null,InputOption::VALUE_REQUIRED, 'Path to accounts file');
+        $this->addOption('report-dsn', null,InputOption::VALUE_REQUIRED, 'What DSN to use in order to send the report');
         $this->addOption('report-from-email', null,InputOption::VALUE_REQUIRED);
         $this->addOption('report-from-name', null,InputOption::VALUE_REQUIRED);
         $this->addOption('report-period', null,InputOption::VALUE_REQUIRED, '', '-365 days');

@@ -17,10 +17,10 @@ class SpamTestCommand extends Command
     public function configure(): void
     {
         $this->addOption('glockapps-key', null,InputOption::VALUE_REQUIRED);
-        $this->addOption('accounts-path', null,InputOption::VALUE_REQUIRED);
-        $this->addOption('subject', null,InputOption::VALUE_REQUIRED);
-        $this->addOption('body-path', null,InputOption::VALUE_REQUIRED);
-        $this->addOption('test-period', null,InputOption::VALUE_REQUIRED, '', '-7 days');
+        $this->addOption('accounts-path', null,InputOption::VALUE_REQUIRED, 'Path to accounts file');
+        $this->addOption('subject', null,InputOption::VALUE_REQUIRED, 'Email subject');
+        $this->addOption('body-path', null,InputOption::VALUE_REQUIRED, 'Path to email body in html format');
+        $this->addOption('min-interval', null,InputOption::VALUE_REQUIRED, 'Minimum testing interval within an account. Works as foolproof in case if command runs multiple times in a row', '-7 days');
         $this->addOption('verify', '', InputOption::VALUE_NONE, 'Verify account without creating a Glockapps test');
         $this->addOption('recipient-email', null,InputOption::VALUE_REQUIRED);
     }
@@ -37,8 +37,8 @@ class SpamTestCommand extends Command
         Assert::string($bodyPath, '--body-path or BODY_PATH is required');
         Assert::fileExists($bodyPath);
         $bodyHtml = file_get_contents($bodyPath);
-        $testPeriod = $input->getOption('test-period') ?? getenv('TEST_PERIOD');
-        Assert::string($testPeriod, '--test-period or TEST_PERIOD is required');
+        $minInterval = $input->getOption('min-interval') ?? getenv('MIN_INTERVAL');
+        Assert::string($minInterval, '--min-interval or MIN_INTERVAL is required');
         $verify = $input->getOption('verify') === true;
         $recipientEmail = $input->getOption('recipient-email') ?? getenv('RECIPIENT_EMAIL');
         Assert::string($recipientEmail, '--recipient-email or RECIPIENT_EMAIL is required');
@@ -59,7 +59,7 @@ class SpamTestCommand extends Command
         Assert::string($key);
         $gc = new GlockappsClient($key);
 
-        $accounts = $this->filterAccounts($accounts, $gc, $testPeriod);
+        $accounts = $this->filterAccounts($accounts, $gc, $minInterval);
         if ($accounts === []) {
             $output->writeln('No matching accounts');
             return self::SUCCESS;
@@ -78,9 +78,9 @@ class SpamTestCommand extends Command
         return self::SUCCESS;
     }
 
-    private function filterAccounts(array $accounts, GlockappsClient $gc, string $testPeriod): array
+    private function filterAccounts(array $accounts, GlockappsClient $gc, string $minInterval): array
     {
-        $tests = $gc->getTestList($testPeriod)['Items'];
+        $tests = $gc->getTestList($minInterval)['Items'];
         return array_values(array_filter($accounts, static function (array $account) use ($tests, $gc) {
             foreach ($tests as $test) {
                 if ($gc->accountMatchesTest($account, $test)) {
