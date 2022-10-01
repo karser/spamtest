@@ -1,7 +1,13 @@
 # spamtest
 
-- Test your Email Deliverability by schedule and receive email reports.
-- See if your emails are being delivered to Inbox or Spam folder at Gmail, Outlook and etc.
+- Check your Email Deliverability (test if your emails are being delivered to Inbox or Spam folder at Gmail, Outlook and etc).
+- Check your Sender Score of your Email Server (IP reputation)
+- Supports multiple accounts
+- Run tests by schedule
+- Receive email reports
+
+### Here is how email report looks like:
+![](docs/spamtest-report.png)
 
 ## Prepare files
 
@@ -42,7 +48,7 @@ services:
       REPORT_DSN: 'smtp://my@email.com:pA$$wOrD@smtp.gmail.com:587'
       REPORT_FROM_EMAIL: 'my@email.com'
       REPORT_FROM_NAME: 'Spamtest'
-      EMAIL: 'your@email.com,your-second@email.com'
+      RECIPIENT_EMAIL: 'your@email.com,your-second@email.com'
       CRON_CONFIG: |
         0 0 * * 1 /var/app/bin/console app:spamtest >> /var/log/cron.log 2>&1
         0 8 * * 1 /var/app/bin/console app:report >> /var/log/cron.log 2>&1
@@ -63,7 +69,7 @@ First you want to make sure that your accounts config is correct and emailable.
 ```
 bin/console app:spamtest --verify
 ```
-If the previous command was executed successfully check your mailbox that you specified in EMAIL variable.
+If the previous command was executed successfully check your mailbox that you specified in RECIPIENT_EMAIL variable.
 
 #### Then let's run a spam test:
 ```
