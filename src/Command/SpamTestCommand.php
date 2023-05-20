@@ -20,8 +20,10 @@ class SpamTestCommand extends Command
         $this->addOption('accounts-path', null,InputOption::VALUE_REQUIRED, 'Path to a json file with accounts');
         $this->addOption('subject', null,InputOption::VALUE_REQUIRED, 'Email subject');
         $this->addOption('body-path', null,InputOption::VALUE_REQUIRED, 'Path to email body in html format');
-        $this->addOption('min-interval', null,InputOption::VALUE_REQUIRED, 'Minimum testing interval within an account. Works as foolproof in case if command runs multiple times in a row', '-7 days');
+        $this->addOption('min-interval', null,InputOption::VALUE_REQUIRED, 'Minimum testing interval within an account. Works as foolproof in case if command runs multiple times in a row', '-10 days');
         $this->addOption('validate-only', '', InputOption::VALUE_NONE, 'Validate DSN instead of creating the Glockapps test');
+        $this->addOption('email-only', '', InputOption::VALUE_NONE, 'Send a test mail to the recipient-email instead of creating the Glockapps test');
+        $this->addOption('recipient-email', null,InputOption::VALUE_REQUIRED, 'Required if email-only option is specified');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -39,9 +41,26 @@ class SpamTestCommand extends Command
         $minInterval = $input->getOption('min-interval') ?? getenv('MIN_INTERVAL');
         Assert::string($minInterval, '--min-interval or MIN_INTERVAL is required');
         $validateOnly = $input->getOption('validate-only') === true;
+        $emailOnly = $input->getOption('email-only') === true;
 
         $es = new EmailSender($subject, $bodyHtml);
 
+        if ($emailOnly) {
+            $recipientEmail = $input->getOption('recipient-email') ?? getenv('RECIPIENT_EMAIL');
+            Assert::string($recipientEmail, '--recipient-email or RECIPIENT_EMAIL is required');
+            $recipientEmail = explode(',', $recipientEmail);
+
+            foreach ($accounts as $account) {
+                $output->write('- '.$account['dsn'].'...');
+                try {
+                    $es->sendEmails($account['dsn'], $recipientEmail, $account['fromEmail'], $account['fromName'], '', $account['note']);
+                    $output->writeln(' OK');
+                } catch (\Exception $e) {
+                    $output->writeln(' Error: '.$e->getMessage());
+                }
+            }
+            return self::SUCCESS;
+        }
         if ($validateOnly) {
             foreach ($accounts as $account) {
                 $output->write('- Validating '.$account['dsn'].'...');
