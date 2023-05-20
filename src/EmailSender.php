@@ -36,4 +36,12 @@ class EmailSender
             $mailer->send($email);
         }
     }
+
+    public function validateDsn(string $dsn): void
+    {
+        $transport = Transport::fromDsn($dsn);
+        $method = new \ReflectionMethod($transport, 'start');
+        $method->setAccessible(true);
+        $method->invoke($transport);
+    }
 }

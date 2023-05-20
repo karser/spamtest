@@ -17,12 +17,11 @@ class SpamTestCommand extends Command
     public function configure(): void
     {
         $this->addOption('glockapps-key', null,InputOption::VALUE_REQUIRED);
-        $this->addOption('accounts-path', null,InputOption::VALUE_REQUIRED, 'Path to accounts file');
+        $this->addOption('accounts-path', null,InputOption::VALUE_REQUIRED, 'Path to a json file with accounts');
         $this->addOption('subject', null,InputOption::VALUE_REQUIRED, 'Email subject');
         $this->addOption('body-path', null,InputOption::VALUE_REQUIRED, 'Path to email body in html format');
         $this->addOption('min-interval', null,InputOption::VALUE_REQUIRED, 'Minimum testing interval within an account. Works as foolproof in case if command runs multiple times in a row', '-7 days');
-        $this->addOption('verify', '', InputOption::VALUE_NONE, 'Verify account without creating a Glockapps test');
-        $this->addOption('recipient-email', null,InputOption::VALUE_REQUIRED);
+        $this->addOption('validate-only', '', InputOption::VALUE_NONE, 'Validate DSN instead of creating the Glockapps test');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -39,18 +38,19 @@ class SpamTestCommand extends Command
         $bodyHtml = file_get_contents($bodyPath);
         $minInterval = $input->getOption('min-interval') ?? getenv('MIN_INTERVAL');
         Assert::string($minInterval, '--min-interval or MIN_INTERVAL is required');
-        $verify = $input->getOption('verify') === true;
-        $recipientEmail = $input->getOption('recipient-email') ?? getenv('RECIPIENT_EMAIL');
-        Assert::string($recipientEmail, '--recipient-email or RECIPIENT_EMAIL is required');
-        $recipientEmail = explode(',', $recipientEmail);
+        $validateOnly = $input->getOption('validate-only') === true;
 
         $es = new EmailSender($subject, $bodyHtml);
 
-        if ($verify) {
+        if ($validateOnly) {
             foreach ($accounts as $account) {
-                $output->write($account['dsn'].'...');
-                $es->sendEmails($account['dsn'], $recipientEmail, $account['fromEmail'], $account['fromName'], '', $account['note']);
-                $output->writeln(' OK');
+                $output->write('- Validating '.$account['dsn'].'...');
+                try {
+                    $es->validateDsn($account['dsn']);
+                    $output->writeln(' OK');
+                } catch (\Exception $e) {
+                    $output->writeln(' Error: '.$e->getMessage());
+                }
             }
             return self::SUCCESS;
         }
@@ -68,6 +68,14 @@ class SpamTestCommand extends Command
         $providers = $gc->getProviders();
         $selectAllGroups = array_sum(array_column($providers['Groups'], 'GroupID'));
         foreach ($accounts as $account) {
+            $output->write('- Validating '.$account['dsn'].'...');
+            try {
+                $es->validateDsn($account['dsn']);
+                $output->writeln(' OK');
+            } catch (\Exception $e) {
+                $output->writeln(' Error: '.$e->getMessage());
+                continue;
+            }
             $note = $account['note'];
             $data = $gc->createTest($note, $selectAllGroups);
             $testId = $data['TestID'];

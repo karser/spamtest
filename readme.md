@@ -67,9 +67,8 @@ docker exec -it spamtest_spamtest_1 sh
 #### Verify accounts without creating a glockapps test
 First you want to make sure that your accounts config is correct and emailable.
 ```
-bin/console app:spamtest --verify
+bin/console app:spamtest --validate-only
 ```
-If the previous command was executed successfully check your mailbox that you specified in RECIPIENT_EMAIL variable.
 
 #### Then let's run a spam test:
 ```
